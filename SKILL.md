@@ -30,7 +30,8 @@ them **canonical, lifespan-routed, and verified** instead of bespoke and uncheck
 ## The canonical taxonomy (do not invent your own)
 
 Every repo gets the same predictable set. Same names every time — that predictability
-is the whole point. Create only what the repo warrants, but keep the names. **If a
+is the whole point. Create only what the repo warrants, but keep the names —
+**except `FOLLOWUPS.md`, which is always created (see below).** **If a
 near-miss file already exists** (e.g. `FOLLOWUP.md` where the canonical name is
 `FOLLOWUPS.md`, or `NOTES.md` doing a `docs/` job), `git mv` it to the canonical
 name and fold its content in — never leave two competing files for the same role.
@@ -40,8 +41,8 @@ name and fold its content in — never leave two competing files for the same ro
 | `CLAUDE.md` (root) | small router: what this is, key commands, where things live, conventions, **pointers to everything below**. Loaded every session — keep it tight. | stable | this |
 | `ARCHITECTURE.md` | the "don't re-scan" quickstart: mental model, 1–2 core data flows end-to-end, module map (one line each) | semi-stable | this |
 | `docs/*.md` | deep references + **funky logic / gotchas**, one topic per file, with a `docs/index.md` | per-subsystem | this |
-| `FOLLOWUPS.md` (root) | small deferred findings — the lightweight "captured so it isn't lost" queue | churns | this |
-| `ROADMAP.md` (root) | larger planned / in-flight efforts | churns | this |
+| `FOLLOWUPS.md` (root) | in-scope tangents found mid-task — important to fix but would derail the task at hand; resolved before starting the next feature. **Always created (even empty), with an instructional header.** | churns | this |
+| `ROADMAP.md` (root) | new features and larger planned / in-flight efforts | churns | this |
 | plan/spec docs + their `## Status` | per-effort progress, what's half-done, dead ends | per-effort | writing-plans |
 | `docs/handoffs/HANDOFF.md` | ephemeral "you are here" session router + verification commands | per-session | creating-handoffs |
 
@@ -49,6 +50,26 @@ name and fold its content in — never leave two competing files for the same ro
 placeholder** (not a stub `HANDOFF.md` — that's session state) **and link it from
 `CLAUDE.md`. Don't write session state here** — that's `creating-handoffs`' job. The
 point is that the two skills meet at the same paths.
+
+**Always create `FOLLOWUPS.md`, even with zero items** — provision it with an
+instructional header so the next agent knows what belongs there and adds entries
+in the right place. `FOLLOWUPS.md` and `ROADMAP.md` are **not** interchangeable and
+serve different lifespans: follow-ups are small tangents off the *current* task that
+must be cleared before starting a new feature; the roadmap is for *new features and
+larger efforts*. Never fold one into the other, and never redirect deferred findings
+to `ROADMAP.md` on the grounds that it "already covers deferred work." If a singular
+`FOLLOWUP.md` exists, `git mv` it to `FOLLOWUPS.md` and fold its content in. Seed the
+file with:
+
+```markdown
+# Follow-ups
+
+In-scope tangents found while working — important to fix, but they'd derail the task
+at hand. Add an entry instead of chasing them now, and **clear these before starting
+a new feature.** New features and larger efforts go in ROADMAP.md, not here.
+
+- [ ] _(none yet)_
+```
 
 ## The scan procedure
 
@@ -68,7 +89,8 @@ Setup is the easy half; trust is the hard half.
 
 - **Write a sync agreement into `CLAUDE.md`**: concrete "when you change X, update Y"
   triggers (e.g. "new service → add it to the `ARCHITECTURE.md` module map";
-  "defer something → add a `FOLLOWUPS.md` entry"). Make updating docs part of "done."
+  "hit a small in-scope tangent → add a `FOLLOWUPS.md` entry"; "plan a new feature or
+  larger effort → add it to `ROADMAP.md`"). Make updating docs part of "done."
 - **Route new knowledge by the taxonomy above as you work** — don't let it pool in
   one catch-all log. (Catch-all logs are the #1 thing baseline agents produce; they
   collapse four lifespans into one file and rot.)
@@ -99,6 +121,7 @@ The claim-verification step is also how you verify docs against code at write ti
 |---|---|
 | Inventing names like `docs/work-log.md` | Use the canonical taxonomy so `creating-handoffs` and the next agent find them |
 | One file mixing session-state + deferred + history | Route by lifespan: HANDOFF vs FOLLOWUPS/ROADMAP vs CHANGELOG/git |
+| Skipping `FOLLOWUPS.md` because `ROADMAP.md` "already covers deferred work" | Different lifespans: FOLLOWUPS = in-scope tangents to clear before the next feature; ROADMAP = new/larger efforts. Always create `FOLLOWUPS.md` (even empty); never merge them |
 | Documenting from code-reading but never testing cold onboarding | Run the cold-start test |
 | Funky logic captured only by luck | Do the explicit funky-logic sweep; give each gotcha a home |
 | Restating README/CHANGELOG | Link to them; they're separate sources of truth |
@@ -110,4 +133,5 @@ The claim-verification step is also how you verify docs against code at write ti
 - "The docs are obviously clear" → run the cold-start test anyway; you have context the next agent won't.
 - "I'll just call it `notes.md`/`work-log.md`" → use the canonical name.
 - "I'll put it all in one file so it's not missed" → route by lifespan instead.
+- "ROADMAP already handles deferred work, so FOLLOWUPS is redundant" → different lifespans; always create `FOLLOWUPS.md` with its instructional header, even empty.
 - "The code probably does X" → verify before you write it.
