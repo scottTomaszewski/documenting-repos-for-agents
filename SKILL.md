@@ -43,6 +43,7 @@ name and fold its content in — never leave two competing files for the same ro
 | `docs/*.md` | deep references + **funky logic / gotchas**, one topic per file, with a `docs/index.md` | per-subsystem | this |
 | `FOLLOWUPS.md` (root) | in-scope tangents found mid-task — important to fix but would derail the task at hand; resolved before starting the next feature. **Always created (even empty), with an instructional header.** | churns | this |
 | `ROADMAP.md` (root) | new features and larger planned / in-flight efforts | churns | this |
+| `CHANGELOG.md` (root) | shipped release history: `# <Project> Releases` h1, one `## <tag>` per release (header text **exactly** the tag), bullet list of changes; new items land under a temp `## Unreleased` | append-per-release | this |
 | plan/spec docs + their `## Status` | per-effort progress, what's half-done, dead ends | per-effort | writing-plans |
 | `docs/handoffs/HANDOFF.md` | ephemeral "you are here" session router + verification commands | per-session | creating-handoffs |
 
@@ -71,6 +72,29 @@ a new feature.** New features and larger efforts go in ROADMAP.md, not here.
 - [ ] _(none yet)_
 ```
 
+**`CHANGELOG.md` records shipped history, one entry per release.** The format is
+fixed so release tooling can parse it:
+
+```markdown
+# <Project> Releases
+
+## Unreleased
+- Change you just made, in user-facing terms.
+
+## 1.4.0
+- ...
+```
+
+- h1 is the project/repo name followed by `Releases`.
+- Each release is an `## ` header whose text is **exactly the tag name** (no
+  decoration, no leading `v` if the project's tags carry none) — release tooling
+  matches on it.
+- Under each header, an unordered list of the changes in that release.
+- **New changes go under a temporary `## Unreleased` header** as you make them. A
+  release recipe (often `just release <version>`) promotes `## Unreleased` to the
+  version header at release time, so don't hand-version unreleased work. Check the
+  repo's `justfile`/CI for the exact mechanic before editing.
+
 ## The scan procedure
 
 Read in this order; stop when you can explain the repo to a newcomer:
@@ -80,7 +104,7 @@ Read in this order; stop when you can explain the repo to a newcomer:
 3. **Directory map by responsibility** — one line per dir/major file. This becomes the `ARCHITECTURE.md` module map.
 4. **Trace 1–2 core data flows** end to end (the main thing the code *does*). This is the heart of `ARCHITECTURE.md`.
 5. **Funky-logic sweep (don't skip — this is where agents under-deliver).** Deliberately hunt non-obvious code: `grep -rin 'workaround\|hack\|FIXME\|TODO\|XXX\|gotcha\|do not\|don.t'`, magic numbers/constants, and comments that explain *why*. **Give each one a home:** a precise inline code comment if it's local, a `docs/*.md` entry if it's cross-cutting. (A real example: an API that needs `1-999` requested to dodge a server bug — invisible unless deliberately captured.)
-6. **Existing README / CHANGELOG** — link to them, never restate them. They are separate sources of truth.
+6. **Existing README** — link to it, never restate it; it's a separate source of truth. **`CHANGELOG.md`** is canonical here (see taxonomy + format note): keep it current, but never duplicate its release notes into other docs.
 7. **Verify before writing** — only document what is **true now**. No aspirations, no unverified "tests pass." Flag observations vs. commitments.
 
 ## Maintenance (anti-rot)
@@ -90,7 +114,8 @@ Setup is the easy half; trust is the hard half.
 - **Write a sync agreement into `CLAUDE.md`**: concrete "when you change X, update Y"
   triggers (e.g. "new service → add it to the `ARCHITECTURE.md` module map";
   "hit a small in-scope tangent → add a `FOLLOWUPS.md` entry"; "plan a new feature or
-  larger effort → add it to `ROADMAP.md`"). Make updating docs part of "done."
+  larger effort → add it to `ROADMAP.md`"; "ship a user-facing change → add a bullet
+  under `## Unreleased` in `CHANGELOG.md`"). Make updating docs part of "done."
 - **Route new knowledge by the taxonomy above as you work** — don't let it pool in
   one catch-all log. (Catch-all logs are the #1 thing baseline agents produce; they
   collapse four lifespans into one file and rot.)
@@ -124,7 +149,7 @@ The claim-verification step is also how you verify docs against code at write ti
 | Skipping `FOLLOWUPS.md` because `ROADMAP.md` "already covers deferred work" | Different lifespans: FOLLOWUPS = in-scope tangents to clear before the next feature; ROADMAP = new/larger efforts. Always create `FOLLOWUPS.md` (even empty); never merge them |
 | Documenting from code-reading but never testing cold onboarding | Run the cold-start test |
 | Funky logic captured only by luck | Do the explicit funky-logic sweep; give each gotcha a home |
-| Restating README/CHANGELOG | Link to them; they're separate sources of truth |
+| Restating the README, or duplicating `CHANGELOG.md` release notes into other docs | Link the README (separate source of truth); keep `CHANGELOG.md` canonical but don't copy its notes elsewhere |
 | Aspirational / unverified claims | Document only what's true now; verify specifics |
 | `CLAUDE.md` bloated into a manual | Keep it a small router; depth lives in `ARCHITECTURE.md`/`docs/` |
 
