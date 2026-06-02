@@ -113,6 +113,23 @@ Three gaps the GREEN test surfaced, folded back into the skill:
 3. **`docs/handoffs/` placeholder filename unspecified** — clarified: a one-line
    `docs/handoffs/README.md` placeholder, not a stub `HANDOFF.md`.
 
+## Later edits
+
+### Numbered `## N.` sections for FOLLOWUPS / ROADMAP
+
+Original seed tracked follow-ups as `- [ ]` checkbox bullets and gave ROADMAP no item
+format. Two problems: bullets can't be cited ("the third one" drifts), and a list item
+is a poor home for the code blocks / commands these entries often need. Switched both
+files to numbered `## N.` header sections:
+
+- The heading number is a referenceable handle ("follow-up 3", "roadmap item 2").
+- A section body holds code blocks, commands, and detail that don't fit in a list.
+- Finished items are marked with a `**Status:** done` line rather than deleted.
+- Numbers are sequential-on-add, **not** permanently stable — completed items get
+  pruned and the rest renumbered on a periodic cleanup pass, not per-edit. (Stable
+  never-reused IDs were considered and rejected: the owner prefers periodic renumber
+  over carrying gaps and tracking a next-id.)
+
 ## Possible future work
 
 - Language-agnostic variation test (baseline/GREEN were both a TS Obsidian plugin;

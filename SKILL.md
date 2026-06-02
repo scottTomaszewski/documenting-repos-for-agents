@@ -41,8 +41,8 @@ name and fold its content in — never leave two competing files for the same ro
 | `CLAUDE.md` (root) | small router: what this is, key commands, where things live, conventions, **pointers to everything below**. Loaded every session — keep it tight. | stable | this |
 | `ARCHITECTURE.md` | the "don't re-scan" quickstart: mental model, 1–2 core data flows end-to-end, module map (one line each) | semi-stable | this |
 | `docs/*.md` | deep references + **funky logic / gotchas**, one topic per file, with a `docs/index.md` | per-subsystem | this |
-| `FOLLOWUPS.md` (root) | in-scope tangents found mid-task — important to fix but would derail the task at hand; resolved before starting the next feature. **Always created (even empty), with an instructional header.** | churns | this |
-| `ROADMAP.md` (root) | new features and larger planned / in-flight efforts | churns | this |
+| `FOLLOWUPS.md` (root) | in-scope tangents found mid-task — important to fix but would derail the task at hand; resolved before starting the next feature. Tracked as numbered `## N.` sections. **Always created (even empty), with an instructional header.** | churns | this |
+| `ROADMAP.md` (root) | new features and larger planned / in-flight efforts, tracked as numbered `## N.` sections | churns | this |
 | `CHANGELOG.md` (root) | shipped release history: `# <Project> Releases` h1, one `## <tag>` per release (header text **exactly** the tag), bullet list of changes; new items land under a temp `## Unreleased` | append-per-release | this |
 | plan/spec docs + their `## Status` | per-effort progress, what's half-done, dead ends | per-effort | writing-plans |
 | `docs/handoffs/HANDOFF.md` | ephemeral "you are here" session router + verification commands | per-session | creating-handoffs |
@@ -59,17 +59,31 @@ serve different lifespans: follow-ups are small tangents off the *current* task 
 must be cleared before starting a new feature; the roadmap is for *new features and
 larger efforts*. Never fold one into the other, and never redirect deferred findings
 to `ROADMAP.md` on the grounds that it "already covers deferred work." If a singular
-`FOLLOWUP.md` exists, `git mv` it to `FOLLOWUPS.md` and fold its content in. Seed the
-file with:
+`FOLLOWUP.md` exists, `git mv` it to `FOLLOWUPS.md` and fold its content in.
+
+**Both files track their items as numbered `## N.` sections — not list bullets.** The
+heading number gives each item a handle to reference ("follow-up 3", "roadmap item
+2"), and the section body can hold code blocks, commands, and detail that wouldn't sit
+cleanly in a list item. Number sequentially as you add items. Mark a finished item
+with a `**Status:** done` line rather than deleting it; completed items get pruned and
+the rest renumbered periodically (a cleanup pass, not per-edit). Seed `FOLLOWUPS.md`
+with:
 
 ```markdown
 # Follow-ups
 
 In-scope tangents found while working — important to fix, but they'd derail the task
-at hand. Add an entry instead of chasing them now, and **clear these before starting
-a new feature.** New features and larger efforts go in ROADMAP.md, not here.
+at hand. Add a numbered `## N.` section below instead of chasing them now, and
+**clear these before starting a new feature.** New features and larger efforts go in
+ROADMAP.md, not here.
 
-- [ ] _(none yet)_
+<!-- Template — copy for each item, numbering sequentially:
+## 1. Short title
+**Status:** open
+What needs doing and why. Code blocks, commands, and links are fine here.
+Mark **Status:** done when resolved; pruned and renumbered on the next cleanup pass. -->
+
+_No open follow-ups yet._
 ```
 
 **`CHANGELOG.md` records shipped history, one entry per release.** The format is
@@ -113,8 +127,9 @@ Setup is the easy half; trust is the hard half.
 
 - **Write a sync agreement into `CLAUDE.md`**: concrete "when you change X, update Y"
   triggers (e.g. "new service → add it to the `ARCHITECTURE.md` module map";
-  "hit a small in-scope tangent → add a `FOLLOWUPS.md` entry"; "plan a new feature or
-  larger effort → add it to `ROADMAP.md`"; "ship a user-facing change → add a bullet
+  "hit a small in-scope tangent → add a numbered `## N.` section to `FOLLOWUPS.md`";
+  "plan a new feature or larger effort → add a numbered `## N.` section to
+  `ROADMAP.md`"; "ship a user-facing change → add a bullet
   under `## Unreleased` in `CHANGELOG.md`"). Make updating docs part of "done."
 - **Route new knowledge by the taxonomy above as you work** — don't let it pool in
   one catch-all log. (Catch-all logs are the #1 thing baseline agents produce; they
@@ -147,6 +162,7 @@ The claim-verification step is also how you verify docs against code at write ti
 | Inventing names like `docs/work-log.md` | Use the canonical taxonomy so `creating-handoffs` and the next agent find them |
 | One file mixing session-state + deferred + history | Route by lifespan: HANDOFF vs FOLLOWUPS/ROADMAP vs CHANGELOG/git |
 | Skipping `FOLLOWUPS.md` because `ROADMAP.md` "already covers deferred work" | Different lifespans: FOLLOWUPS = in-scope tangents to clear before the next feature; ROADMAP = new/larger efforts. Always create `FOLLOWUPS.md` (even empty); never merge them |
+| Logging follow-up/roadmap items as plain bullets — uncitable, no room for code | Use numbered `## N.` sections so each has a handle ("follow-up 3"); mark done with a `**Status:**` line, prune + renumber on a cleanup pass |
 | Documenting from code-reading but never testing cold onboarding | Run the cold-start test |
 | Funky logic captured only by luck | Do the explicit funky-logic sweep; give each gotcha a home |
 | Restating the README, or duplicating `CHANGELOG.md` release notes into other docs | Link the README (separate source of truth); keep `CHANGELOG.md` canonical but don't copy its notes elsewhere |
