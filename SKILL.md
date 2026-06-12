@@ -40,7 +40,7 @@ name and fold its content in — never leave two competing files for the same ro
 |------|-------|----------|-------------|
 | `CLAUDE.md` (root) | small router: what this is, key commands, where things live, conventions, **pointers to everything below**. Loaded every session — keep it tight. | stable | this |
 | `ARCHITECTURE.md` | the "don't re-scan" quickstart: mental model, 1–2 core data flows end-to-end, module map (one line each) | semi-stable | this |
-| `docs/*.md` | deep references + **funky logic / gotchas**, one topic per file, with a `docs/index.md` | per-subsystem | this |
+| `docs/*.md` | deep references + **funky logic / gotchas**, one topic per file, with a `docs/index.md`; also per-topic dated change logs (`docs/<topic>-log.md`) and the prune archives (`docs/followups-archive/`, `docs/roadmap-archive/`) | per-subsystem | this |
 | `FOLLOWUPS.md` (root) | in-scope tangents found mid-task — important to fix but would derail the task at hand; resolved before starting the next feature. Tracked as numbered `## N.` sections. **Always created (even empty), with an instructional header.** | churns | this |
 | `ROADMAP.md` (root) | new features and larger planned / in-flight efforts, tracked as numbered `## N.` sections | churns | this |
 | `CHANGELOG.md` (root) | shipped release history: `# <Project> Releases` h1, one `## <tag>` per release (header text **exactly** the tag), bullet list of changes; new items land under a temp `## Unreleased` | append-per-release | this |
@@ -109,6 +109,33 @@ fixed so release tooling can parse it:
   version header at release time, so don't hand-version unreleased work. Check the
   repo's `justfile`/CI for the exact mechanic before editing.
 
+**Dated history is a log — never let it accrete in `CLAUDE.md`.** The most common
+regrowth failure: each change "updates the docs" by appending one more dated sentence
+("On <date> X was restructured — see …") to the relevant `CLAUDE.md` section, until the
+section is a multi-thousand-character history paragraph. `CLAUDE.md` states what is
+true *now*. Route the dated entries to a per-topic log — `docs/<topic>-log.md`, one
+`## YYYY-MM-DD — title` section per change, each linking to its plan/spec doc — and
+leave only a current-state summary + pointer in `CLAUDE.md`. Put the trigger in the
+sync agreement ("change <subsystem> → append a dated entry to `docs/<topic>-log.md`
+and refresh the summary"). A section that needs a second dated sentence has become a
+log.
+
+**Prune to an archive, and fix `#N` references when you renumber.** On the
+FOLLOWUPS/ROADMAP cleanup pass, move completed items to
+`docs/followups-archive/<date>-completed.md` / `docs/roadmap-archive/<date>-completed.md`
+— keep each item's full body and add a "(was FOLLOWUPS #N)" handle to its title — then
+renumber the live file. Renumbering invalidates `#N` references elsewhere, so grep the
+**live** docs (`CLAUDE.md`, `ARCHITECTURE.md`, `docs/*.md` — and sibling repos in a
+multi-repo workspace) and fix them. Dated plan/spec/decision docs keep their as-written
+numbers: they were correct at writing time, and the archives' "was #N" handles keep
+them resolvable. Never rewrite history docs.
+
+**Multi-repo workspaces:** `FOLLOWUPS.md`/`ROADMAP.md` live once, at the workspace
+root — sub-repos must not grow their own. Per-effort plan/spec docs go in the repo
+where the work lands; efforts spanning repos (or workspace-level contracts) go in the
+workspace's docs. Historical dated docs stay where they were written — moving them
+dangles references; fix routing only going forward.
+
 ## The scan procedure
 
 Read in this order; stop when you can explain the repo to a newcomer:
@@ -168,6 +195,8 @@ The claim-verification step is also how you verify docs against code at write ti
 | Restating the README, or duplicating `CHANGELOG.md` release notes into other docs | Link the README (separate source of truth); keep `CHANGELOG.md` canonical but don't copy its notes elsewhere |
 | Aspirational / unverified claims | Document only what's true now; verify specifics |
 | `CLAUDE.md` bloated into a manual | Keep it a small router; depth lives in `ARCHITECTURE.md`/`docs/` |
+| `CLAUDE.md` sections growing one dated sentence per change | Dated history is a log: move entries to `docs/<topic>-log.md`, leave current state + pointer |
+| Renumbering FOLLOWUPS/ROADMAP and leaving stale `#N` refs behind | Archive with "was #N" handles; grep live docs (all repos) and fix; history docs keep as-written numbers |
 
 ## Red Flags — STOP
 
@@ -175,4 +204,5 @@ The claim-verification step is also how you verify docs against code at write ti
 - "I'll just call it `notes.md`/`work-log.md`" → use the canonical name.
 - "I'll put it all in one file so it's not missed" → route by lifespan instead.
 - "ROADMAP already handles deferred work, so FOLLOWUPS is redundant" → different lifespans; always create `FOLLOWUPS.md` with its instructional header, even empty.
+- "I'll just append the change note to the relevant CLAUDE.md section" → that's history; append to the topic log (`docs/<topic>-log.md`) and refresh the current-state summary instead.
 - "The code probably does X" → verify before you write it.
