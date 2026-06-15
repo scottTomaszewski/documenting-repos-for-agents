@@ -64,24 +64,41 @@ to `ROADMAP.md` on the grounds that it "already covers deferred work." If a sing
 **Both files track their items as numbered `## N.` sections — not list bullets.** The
 heading number gives each item a handle to reference ("follow-up 3", "roadmap item
 2"), and the section body can hold code blocks, commands, and detail that wouldn't sit
-cleanly in a list item. Number sequentially as you add items. Mark a finished item
-with a `**Status:** done` line rather than deleting it; completed items get pruned and
-the rest renumbered periodically (a cleanup pass, not per-edit). Seed `FOLLOWUPS.md`
-with:
+cleanly in a list item.
+
+**Numbers are permanent identifiers: assign once, never reuse, never renumber** (the
+GitHub-issues model — issue #5 is #5 for life; closing it never shifts #6 down). Take
+each new item's number from an all-time high-water counter kept in the file header
+(`<!-- next-id: N -->`), not from "highest live item + 1" — when done items have been
+pruned, the live max is *below* numbers still live in the archive, so "live max + 1"
+silently recycles a number and makes every `(was #N)` handle ambiguous. Increment the
+counter, never decrement it. Mark a finished item with a `**Status:** done` line rather
+than deleting it; on a cleanup pass completed items get pruned to the archive (below) —
+but the survivors **keep their numbers**, so gaps in the live sequence (1, 2, 5, 8…)
+are expected and correct, not a defect to tidy up. This deletes the fragile
+"renumber-then-grep-every-repo-to-fix-`#N`-refs" step entirely: a reference to `#N`
+stays valid forever because `N` never moves. Seed `FOLLOWUPS.md` with:
 
 ```markdown
 # Follow-ups
 
-In-scope tangents found while working — important to fix, but they'd derail the task
-at hand. Add a numbered `## N.` section below instead of chasing them now, and
-**clear these before starting a new feature.** New features and larger efforts go in
-ROADMAP.md, not here.
+<!-- next-id: 1 -->
 
-<!-- Template — copy for each item, numbering sequentially:
-## 1. Short title
+In-scope tangents found while working — important to fix, but they'd derail the task
+at hand. Add a numbered `## N.` section below (take N from `next-id` above, then
+increment it) instead of chasing them now, and **clear these before starting a new
+feature.** New features and larger efforts go in ROADMAP.md, not here.
+
+Numbers are permanent: never reused, never renumbered. Done items get pruned to
+`docs/followups-archive/` keeping their original number as a `(was FOLLOWUPS #N)`
+handle, so gaps in the live list are normal. **Referenced `#N` not in this file? It's
+completed — `grep -rn 'was FOLLOWUPS #N' docs/followups-archive/`.**
+
+<!-- Template — copy for each item; take N from next-id above, then bump next-id:
+## N. Short title
 **Status:** open
 What needs doing and why. Code blocks, commands, and links are fine here.
-Mark **Status:** done when resolved; pruned and renumbered on the next cleanup pass. -->
+Mark **Status:** done when resolved; pruned (never renumbered) on the next cleanup pass. -->
 
 _No open follow-ups yet._
 ```
@@ -120,15 +137,17 @@ sync agreement ("change <subsystem> → append a dated entry to `docs/<topic>-lo
 and refresh the summary"). A section that needs a second dated sentence has become a
 log.
 
-**Prune to an archive, and fix `#N` references when you renumber.** On the
-FOLLOWUPS/ROADMAP cleanup pass, move completed items to
+**Prune to an archive — but never renumber, so `#N` references never go stale.** On
+the FOLLOWUPS/ROADMAP cleanup pass, move completed items to
 `docs/followups-archive/<date>-completed.md` / `docs/roadmap-archive/<date>-completed.md`
-— keep each item's full body and add a "(was FOLLOWUPS #N)" handle to its title — then
-renumber the live file. Renumbering invalidates `#N` references elsewhere, so grep the
-**live** docs (`CLAUDE.md`, `ARCHITECTURE.md`, `docs/*.md` — and sibling repos in a
-multi-repo workspace) and fix them. Dated plan/spec/decision docs keep their as-written
-numbers: they were correct at writing time, and the archives' "was #N" handles keep
-them resolvable. Never rewrite history docs.
+— keep each item's full body and add a "(was FOLLOWUPS #N)" handle to its title. Then
+**leave the surviving live items' numbers exactly as they are** (gaps are fine) and
+**do not touch the `next-id` counter** — it only ever increments at creation time.
+Because numbers never move, there is nothing to grep-and-fix: a `#N` reference anywhere
+(live docs, dated plan/spec docs, sibling repos) resolves forever — either it's still
+in the live file, or it's in the archive under `(was #N)`, which is now a *unique*
+handle (it was ambiguous only back when renumbering recycled numbers). Never rewrite
+history docs.
 
 **Multi-repo workspaces:** `FOLLOWUPS.md`/`ROADMAP.md` live once, at the workspace
 root — sub-repos must not grow their own. Per-effort plan/spec docs go in the repo
@@ -189,14 +208,14 @@ The claim-verification step is also how you verify docs against code at write ti
 | Inventing names like `docs/work-log.md` | Use the canonical taxonomy so `creating-handoffs` and the next agent find them |
 | One file mixing session-state + deferred + history | Route by lifespan: HANDOFF vs FOLLOWUPS/ROADMAP vs CHANGELOG/git |
 | Skipping `FOLLOWUPS.md` because `ROADMAP.md` "already covers deferred work" | Different lifespans: FOLLOWUPS = in-scope tangents to clear before the next feature; ROADMAP = new/larger efforts. Always create `FOLLOWUPS.md` (even empty); never merge them |
-| Logging follow-up/roadmap items as plain bullets — uncitable, no room for code | Use numbered `## N.` sections so each has a handle ("follow-up 3"); mark done with a `**Status:**` line, prune + renumber on a cleanup pass |
+| Logging follow-up/roadmap items as plain bullets — uncitable, no room for code | Use numbered `## N.` sections so each has a handle ("follow-up 3"); mark done with a `**Status:**` line, prune (never renumber) on a cleanup pass |
 | Documenting from code-reading but never testing cold onboarding | Run the cold-start test |
 | Funky logic captured only by luck | Do the explicit funky-logic sweep; give each gotcha a home |
 | Restating the README, or duplicating `CHANGELOG.md` release notes into other docs | Link the README (separate source of truth); keep `CHANGELOG.md` canonical but don't copy its notes elsewhere |
 | Aspirational / unverified claims | Document only what's true now; verify specifics |
 | `CLAUDE.md` bloated into a manual | Keep it a small router; depth lives in `ARCHITECTURE.md`/`docs/` |
 | `CLAUDE.md` sections growing one dated sentence per change | Dated history is a log: move entries to `docs/<topic>-log.md`, leave current state + pointer |
-| Renumbering FOLLOWUPS/ROADMAP and leaving stale `#N` refs behind | Archive with "was #N" handles; grep live docs (all repos) and fix; history docs keep as-written numbers |
+| Renumbering FOLLOWUPS/ROADMAP on prune — recycles numbers, makes `(was #N)` handles ambiguous, dangles every `#N` ref | Never renumber or reuse: assign once from a `next-id` header counter, prune to the archive keeping the original number, leave gaps. `#N` then resolves forever with no grep-and-fix step |
 
 ## Red Flags — STOP
 
@@ -205,4 +224,5 @@ The claim-verification step is also how you verify docs against code at write ti
 - "I'll put it all in one file so it's not missed" → route by lifespan instead.
 - "ROADMAP already handles deferred work, so FOLLOWUPS is redundant" → different lifespans; always create `FOLLOWUPS.md` with its instructional header, even empty.
 - "I'll just append the change note to the relevant CLAUDE.md section" → that's history; append to the topic log (`docs/<topic>-log.md`) and refresh the current-state summary instead.
+- "I pruned some done items, let me renumber the rest so they're tidy" → STOP. Numbers are permanent IDs; renumbering recycles them and dangles every `#N` reference. Leave gaps; only `next-id` moves, and only upward.
 - "The code probably does X" → verify before you write it.
